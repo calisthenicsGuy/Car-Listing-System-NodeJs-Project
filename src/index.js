@@ -5,7 +5,9 @@ const { home } = require("./controllers/home");
 const { about } = require("./controllers/about");
 const { details } = require("./controllers/details");
 const { notFound } = require("./controllers/notFound");
+const { deleteGet, deletePost } = require("./controllers/delete");
 const { createGet, createPost } = require("./controllers/create");
+const { editGet, editPost } = require("./controllers/edit");
 
 const carsService = require("./services/cars");
 
@@ -23,8 +25,9 @@ app.use(carsService());
 app.get("/", home);
 app.get("/about", about);
 app.get("/details/:id", details);
-app.get("/create", createGet);
-app.post("/create", createPost);
+app.route("/create").get(createGet).post(createPost);
+app.route("/delete/:id").get(deleteGet).post(deletePost);
+app.route("/edit/:id").get(editGet).post(editPost);
 app.get("*", notFound);
 
 app.listen(3000, () => {

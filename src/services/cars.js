@@ -15,7 +15,7 @@ async function read() {
 
 async function write(data) {
   try {
-    const jsonData = JSON.stringify(data);
+    const jsonData = JSON.stringify(data, null, 2);
     await fs.writeFile(FILE_PATH, jsonData);
   } catch (error) {
     console.error("Database write error.");
@@ -24,12 +24,33 @@ async function write(data) {
   }
 }
 
-async function getAll() {
+async function getAll(searchTerms = {}) {
   const data = await read();
 
-  return Object.entries(data).map(([id, value]) =>
+  let cars = Object.entries(data).map(([id, value]) =>
     Object.assign({}, { id }, value)
   );
+
+  if (searchTerms.search) {
+    cars = cars.filter((car) =>
+      car.name
+        .toLowerCase()
+        .includes(
+          searchTerms.search.toLowerCase() ||
+            car.description
+              .toLowerCase()
+              .includes(searchTerms.search.toLowerCase())
+        )
+    );
+  }
+  if (searchTerms.from) {
+    cars = cars.filter((car) => Number(car.price) >= Number(searchTerms.from));
+  }
+  if (searchTerms.to) {
+    cars = cars.filter((car) => Number(car.price) <= Number(searchTerms.to));
+  }
+
+  return cars;
 }
 
 async function getById(id) {
@@ -58,6 +79,30 @@ async function createCar(car) {
   await write(cars);
 }
 
+async function deleteById(id) {
+  const cars = await read();
+
+  if (cars.hasOwnProperty(id)) {
+    delete cars[id];
+  } else {
+    throw new ReferenceError("No such ID in database.");
+  }
+
+  await write(cars);
+}
+
+async function editById(id, newCar) {
+  const cars = await read();
+
+  if (cars.hasOwnProperty(id)) {
+    cars[id] = newCar;
+  } else {
+    throw new ReferenceError("No such ID in database.");
+  }
+
+  await write(cars);
+}
+
 function nextId() {
   return "xxxxxxxx-xxxx".replace(/x/g, () =>
     ((Math.random() * 16) | 0).toString()
@@ -69,6 +114,8 @@ module.exports = () => (req, res, next) => {
     getAll,
     getById,
     createCar,
+    deleteById,
+    editById,
   };
 
   next();

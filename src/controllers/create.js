@@ -5,9 +5,15 @@ module.exports = {
   async createPost(req, res) {
     const data = req.body;
 
+    // Object.values(data).forEach((value) => {
+    //   if (!value) {
+    //     res.redirect("/");
+    //   }
+    // });
+
     const car = {
       name: data.name,
-      price: data.price,
+      price: Number(data.price),
       imageUrl: data.imageUrl,
       description: data.description,
     };
