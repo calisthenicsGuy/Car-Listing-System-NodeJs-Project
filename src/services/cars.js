@@ -1,112 +1,66 @@
-const fs = require("fs/promises");
+const Car = require("../models/Car");
 
-const FILE_PATH = "./services/data.json";
-
-async function read() {
-  try {
-    const data = await fs.readFile(FILE_PATH, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("Database read error.");
-    console.error(error);
-    process.exit(1);
-  }
-}
-
-async function write(data) {
-  try {
-    const jsonData = JSON.stringify(data, null, 2);
-    await fs.writeFile(FILE_PATH, jsonData);
-  } catch (error) {
-    console.error("Database write error.");
-    console.error(error);
-    process.exit(1);
-  }
+function carViewModel(car) {
+  return {
+    id: car._id,
+    name: car.name,
+    price: car.price,
+    imageUrl: car.imageUrl,
+    description: car.description,
+  };
 }
 
 async function getAll(searchTerms = {}) {
-  const data = await read();
-
-  let cars = Object.entries(data).map(([id, value]) =>
-    Object.assign({}, { id }, value)
-  );
+  const options = { isDeleted: false };
 
   if (searchTerms.search) {
-    cars = cars.filter((car) =>
-      car.name
-        .toLowerCase()
-        .includes(
-          searchTerms.search.toLowerCase() ||
-            car.description
-              .toLowerCase()
-              .includes(searchTerms.search.toLowerCase())
-        )
-    );
+    options.name = new RegExp(searchTerms.search, "i");
   }
   if (searchTerms.from) {
-    cars = cars.filter((car) => Number(car.price) >= Number(searchTerms.from));
+    options.price = { $gte: Number(searchTerms.from) };
   }
   if (searchTerms.to) {
-    cars = cars.filter((car) => Number(car.price) <= Number(searchTerms.to));
+    options.price
+      ? (options.price.$lte = Number(searchTerms.to))
+      : (options.price = { $lte: Number(searchTerms.to) });
   }
 
-  return cars;
+  const cars = await Car.find(options);
+  return cars.map(carViewModel);
+  // return cars.map((car) => carViewModel(car));
 }
 
 async function getById(id) {
-  const cars = await getAll();
-  const targetCar = cars.find((car) => car["id"] == id);
+  const car = await Car.findById(id).where({ isDeleted: false });
 
-  if (targetCar) {
-    return targetCar;
+  if (car) {
+    return carViewModel(car);
   } else {
     return undefined;
   }
-  //   const cars = await read();
-  //   const targetCas = Object.assign({}, {id}, cars[id])
 }
 
 async function createCar(car) {
-  const cars = await read();
-
-  let id;
-  do {
-    id = nextId();
-  } while (cars.hasOwnProperty(id));
-
-  cars[id] = car;
-
-  await write(cars);
+  const newCar = new Car(car);
+  await newCar.save();
 }
 
 async function deleteById(id) {
-  const cars = await read();
-
-  if (cars.hasOwnProperty(id)) {
-    delete cars[id];
-  } else {
-    throw new ReferenceError("No such ID in database.");
+  try {
+    await Car.deleteOne({ _id: id }).where({ isDeleted: false });
+  } catch (error) {
+    console.error(`Error while deleting car with ${id} id.`, error);
+    process.exit(1);
   }
-
-  await write(cars);
 }
 
 async function editById(id, newCar) {
-  const cars = await read();
-
-  if (cars.hasOwnProperty(id)) {
-    cars[id] = newCar;
-  } else {
-    throw new ReferenceError("No such ID in database.");
+  try {
+    await Car.findByIdAndUpdate(id, newCar).where({ isDeleted: false });
+  } catch (error) {
+    console.error(`Error while editing car with ${id} id.`, error);
+    process.exit(1);
   }
-
-  await write(cars);
-}
-
-function nextId() {
-  return "xxxxxxxx-xxxx".replace(/x/g, () =>
-    ((Math.random() * 16) | 0).toString()
-  );
 }
 
 module.exports = () => (req, res, next) => {
