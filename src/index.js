@@ -1,5 +1,6 @@
 const express = require("express");
 const handlebars = require("express-handlebars");
+const expressSession = require("express-session");
 
 const initDb = require("./models/index");
 
@@ -10,11 +11,19 @@ const { notFound } = require("./controllers/notFound");
 const { deleteGet, deletePost } = require("./controllers/delete");
 const { createGet, createPost } = require("./controllers/create");
 const { editGet, editPost } = require("./controllers/edit");
+const {
+  registerGet,
+  registerPost,
+  loginGet,
+  loginPost,
+  lgout,
+} = require("./controllers/auth");
 const accessory = require("./controllers/accessory");
 const attach = require("./controllers/attach");
 
 const carsService = require("./services/cars");
 const accessoryService = require("./services/accessory");
+const authService = require("./services/auth");
 
 start();
 
@@ -24,6 +33,15 @@ async function start() {
   const app = express();
   const hbs = handlebars.create({ extname: ".hbs" });
 
+  app.use(
+    expressSession({
+      secret: "super secret",
+      reasev: false,
+      saveUninitialized: true,
+      cookie: { secure: "auto" },
+    })
+  );
+
   app.use(express.urlencoded({ extended: true }));
   app.use("/static", express.static("static"));
 
@@ -32,6 +50,7 @@ async function start() {
 
   app.use(carsService());
   app.use(accessoryService());
+  app.use(authService());
 
   app.get("/", home);
   app.get("/about", about);
@@ -41,6 +60,9 @@ async function start() {
   app.route("/edit/:id").get(editGet).post(editPost);
   app.route("/accessory").get(accessory.get).post(accessory.post);
   app.route("/attach/:id").get(attach.get).post(attach.post);
+  app.route("/register").get(registerGet).post(registerPost);
+  app.route("/login").get(loginGet).post(loginPost);
+  app.get("/logout", lgout);
 
   app.get("*", notFound);
 
