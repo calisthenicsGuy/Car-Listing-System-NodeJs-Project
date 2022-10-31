@@ -3,7 +3,11 @@ module.exports = {
     res.render("register", { title: "Register" });
   },
   async registerPost(req, res) {
-    if (req.body.username == "" || req.body.password == "" || req.body.repeatPassword == "") {
+    if (
+      req.body.username == "" ||
+      req.body.password == "" ||
+      req.body.repeatPassword == ""
+    ) {
       return res.redirect("/register");
     }
 
@@ -20,8 +24,19 @@ module.exports = {
     }
   },
   loginGet(req, res) {
-    res.render("login", { title: "Register" });
+    res.render("login", { title: "Login" });
   },
-  async loginPost(req, res) {},
-  lgout(req, res) {},
+  async loginPost(req, res) {
+    try {
+      await req.auth.login(req.body.username, req.body.password);
+      res.redirect("/");
+    } catch (error) {
+      console.log(error.message);
+      res.redirect("/login");
+    }
+  },
+  logout(req, res) {
+    req.auth.logout();
+    res.redirect("/");
+  },
 };

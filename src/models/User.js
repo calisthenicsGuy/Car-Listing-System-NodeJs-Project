@@ -16,7 +16,7 @@ const userSchema = new Schema({
 });
 
 userSchema.methods.comparePassword = async function (password) {
-  return await comparePassword(password, this.hashPassword);
+  return await comparePassword(password, this.hashedPassword);
 };
 
 userSchema.pre("save", async function (next) {

@@ -35,9 +35,18 @@ async function comparePassword(password, hashPassword) {
   return bcrypt.compare(password, hashPassword);
 }
 
+function isLoggedIn(req, res, next) {
+  if (req.session.user) {
+    next();
+  } else {
+    res.redirect("/login");
+  }
+}
+
 module.exports = {
   carViewModel,
   accessoryViewModel,
   hashPassword,
   comparePassword,
+  isLoggedIn,
 };

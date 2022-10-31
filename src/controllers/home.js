@@ -5,6 +5,7 @@ module.exports = {
     res.locals = {
       cars: cars,
       query: req.query,
+      hasUser: res.locals.hasUser || false,
     };
 
     res.render("index", { title: "Carbicle | Home" });

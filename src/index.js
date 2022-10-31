@@ -16,7 +16,7 @@ const {
   registerPost,
   loginGet,
   loginPost,
-  lgout,
+  logout,
 } = require("./controllers/auth");
 const accessory = require("./controllers/accessory");
 const attach = require("./controllers/attach");
@@ -24,6 +24,8 @@ const attach = require("./controllers/attach");
 const carsService = require("./services/cars");
 const accessoryService = require("./services/accessory");
 const authService = require("./services/auth");
+
+const { isLoggedIn } = require("./services/utils");
 
 start();
 
@@ -55,14 +57,35 @@ async function start() {
   app.get("/", home);
   app.get("/about", about);
   app.get("/details/:id", details);
-  app.route("/create").get(createGet).post(createPost);
-  app.route("/delete/:id").get(deleteGet).post(deletePost);
-  app.route("/edit/:id").get(editGet).post(editPost);
-  app.route("/accessory").get(accessory.get).post(accessory.post);
-  app.route("/attach/:id").get(attach.get).post(attach.post);
-  app.route("/register").get(registerGet).post(registerPost);
-  app.route("/login").get(loginGet).post(loginPost);
-  app.get("/logout", lgout);
+  app.get("/logout", logout);
+
+  app.route("/create")
+    .get(isLoggedIn, createGet)
+    .post(isLoggedIn, createPost);
+
+  app.route("/delete/:id")
+    .get(isLoggedIn, deleteGet)
+    .post(isLoggedIn, deletePost);
+
+  app.route("/edit/:id")
+    .get(isLoggedIn, editGet)
+    .post(isLoggedIn, editPost);
+
+  app.route("/accessory")
+    .get(isLoggedIn, accessory.get)
+    .post(isLoggedIn, accessory.post);
+
+  app.route("/attach/:id")
+    .get(isLoggedIn, attach.get)
+    .post(isLoggedIn, attach.post);
+
+  app.route("/register")
+    .get(registerGet)
+    .post(registerPost);
+
+  app.route("/login")
+    .get(loginGet)
+    .post(loginPost);
 
   app.get("*", notFound);
 
