@@ -12,12 +12,6 @@ module.exports = {
   async editPost(req, res) {
     const data = req.body;
 
-    Object.keys(data).forEach((key) => {
-      if (!data[key]) {
-        res.redirect("/404");
-      }
-    });
-
     const car = {
       name: data.name,
       price: Number(data.price),

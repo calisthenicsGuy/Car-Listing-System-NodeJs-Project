@@ -4,10 +4,10 @@ module.exports = {
 
     if (car) {
       res.locals = {
-        car: car,
+        car: car
       };
 
-      res.render("details", {title: `${car["name"]} | Details`});
+      res.render("details", { title: `${car["name"]} | Details` });
     } else {
       res.redirect("/404");
     }

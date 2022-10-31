@@ -1,14 +1,6 @@
 const Car = require("../models/Car");
 
-function carViewModel(car) {
-  return {
-    id: car._id,
-    name: car.name,
-    price: car.price,
-    imageUrl: car.imageUrl,
-    description: car.description,
-  };
-}
+const { carViewModel } = require("./utils");
 
 async function getAll(searchTerms = {}) {
   const options = { isDeleted: false };
@@ -31,7 +23,9 @@ async function getAll(searchTerms = {}) {
 }
 
 async function getById(id) {
-  const car = await Car.findById(id).where({ isDeleted: false });
+  const car = await Car.findById(id)
+    .where({ isDeleted: false })
+    .populate("accessories");
 
   if (car) {
     return carViewModel(car);
@@ -47,20 +41,37 @@ async function createCar(car) {
 
 async function deleteById(id) {
   try {
-    await Car.deleteOne({ _id: id }).where({ isDeleted: false });
+    const car = await Car.findById(id);
+    car.isDeleted = true;
+    car.save();
   } catch (error) {
-    console.error(`Error while deleting car with ${id} id.`, error);
+    console.error(`Error while deleting car with ${id} id.`, error.message);
     process.exit(1);
   }
 }
 
 async function editById(id, newCar) {
-  try {
-    await Car.findByIdAndUpdate(id, newCar).where({ isDeleted: false });
-  } catch (error) {
-    console.error(`Error while editing car with ${id} id.`, error);
-    process.exit(1);
-  }
+  const car = await Car.findById(id).where({ isDeleted: false });
+  car.name = newCar.name;
+  car.price = newCar.price;
+  car.imageUrl = newCar.imageUrl;
+  car.description = newCar.description;
+  car.accessories = newCar.accessories;
+
+  await car.save();
+}
+
+async function attachAccessory(carId, accessoryId) {
+  const car = await Car.findById(carId);
+
+  car.accessories.push(accessoryId);
+  await car.save();
+}
+
+async function getAccessoriesForCar(carId) {
+  const car = await Car.findById(carId);
+
+  return car.accessories;
 }
 
 module.exports = () => (req, res, next) => {
@@ -70,6 +81,7 @@ module.exports = () => (req, res, next) => {
     createCar,
     deleteById,
     editById,
+    attachAccessory,
   };
 
   next();

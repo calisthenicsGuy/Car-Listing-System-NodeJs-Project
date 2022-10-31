@@ -10,8 +10,11 @@ const { notFound } = require("./controllers/notFound");
 const { deleteGet, deletePost } = require("./controllers/delete");
 const { createGet, createPost } = require("./controllers/create");
 const { editGet, editPost } = require("./controllers/edit");
+const accessory = require("./controllers/accessory");
+const attach = require("./controllers/attach");
 
 const carsService = require("./services/cars");
+const accessoryService = require("./services/accessory");
 
 start();
 
@@ -28,6 +31,7 @@ async function start() {
   app.set("view engine", ".hbs");
 
   app.use(carsService());
+  app.use(accessoryService());
 
   app.get("/", home);
   app.get("/about", about);
@@ -35,6 +39,9 @@ async function start() {
   app.route("/create").get(createGet).post(createPost);
   app.route("/delete/:id").get(deleteGet).post(deletePost);
   app.route("/edit/:id").get(editGet).post(editPost);
+  app.route("/accessory").get(accessory.get).post(accessory.post);
+  app.route("/attach/:id").get(attach.get).post(attach.post);
+
   app.get("*", notFound);
 
   app.listen(3000, () => {
