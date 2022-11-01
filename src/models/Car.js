@@ -30,6 +30,7 @@ const carSechema = new Schema({
     maxLength: [8000, "Car Description, cannot be more than 8000 symbols"],
   },
   accessories: { type: [ObjectId], default: [], ref: "Accessory" },
+  owner: { type: ObjectId, ref: "User" },
   isDeleted: { type: Boolean, default: false },
 });
 

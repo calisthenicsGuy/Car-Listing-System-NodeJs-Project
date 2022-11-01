@@ -2,6 +2,10 @@ module.exports = {
   async editGet(req, res) {
     const car = await req.storage.getById(req.params.id);
 
+    if (car.owner != req.session.user.id) {
+      console.log("User is not owner.");
+      return res.redirect("/login");
+    }
     res.locals = {
       car: car,
     };
@@ -20,7 +24,7 @@ module.exports = {
     };
 
     try {
-      await req.storage.editById(req.params.id, car);
+      await req.storage.editById(req.params.id, car, req.session.user.id);
       res.redirect("/");
     } catch (error) {
       res.redirect("/404");

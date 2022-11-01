@@ -32,6 +32,7 @@ const accessorySchema = new Schema({
     ],
   },
   cars: { type: [ObjectId], default: [], ref: "Car" },
+  owner: { type: [ObjectId], ref: "User" },
   isDeleted: { type: Boolean, default: false },
 });
 

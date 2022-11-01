@@ -39,19 +39,24 @@ async function createCar(car) {
   await newCar.save();
 }
 
-async function deleteById(id) {
-  try {
-    const car = await Car.findById(id);
-    car.isDeleted = true;
-    car.save();
-  } catch (error) {
-    console.error(`Error while deleting car with ${id} id.`, error.message);
-    process.exit(1);
+async function deleteById(id, ownerId) {
+  const car = await Car.findById(id);
+
+  if (carViewModel(car).owner != ownerId) {
+    throw new Error("User is not owner.");
   }
+
+  car.isDeleted = true;
+  car.save();
 }
 
-async function editById(id, newCar) {
+async function editById(id, newCar, ownerId) {
   const car = await Car.findById(id).where({ isDeleted: false });
+
+  if (carViewModel(car).owner != ownerId) {
+    throw new Error("User is not owner.");
+  }
+
   car.name = newCar.name;
   car.price = newCar.price;
   car.imageUrl = newCar.imageUrl;
@@ -61,8 +66,12 @@ async function editById(id, newCar) {
   await car.save();
 }
 
-async function attachAccessory(carId, accessoryId) {
+async function attachAccessory(carId, accessoryId, ownerId) {
   const car = await Car.findById(carId);
+
+  if (carViewModel(car).owner != ownerId) {
+    throw new Error("User is not owner.");
+  }
 
   car.accessories.push(accessoryId);
   await car.save();

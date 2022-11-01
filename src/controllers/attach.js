@@ -1,5 +1,11 @@
 module.exports = {
   async get(req, res) {
+    const car = req.storage.getById(req.params.id);
+    if (car.owner != req.session.user.id) {
+      console.log("User is not owner.");
+      return res.redirect("/login");
+    }
+
     try {
       const id = req.params.id;
       const [car, accessories] = await Promise.all([
@@ -7,8 +13,10 @@ module.exports = {
         req.accessory.getAll(),
       ]);
 
-      const existingIds = car.accessories.map(a => a.id.toString());
-      let availableAccessories = accessories.filter(a => existingIds.includes(a.id.toString()) == false);
+      const existingIds = car.accessories.map((a) => a.id.toString());
+      let availableAccessories = accessories.filter(
+        (a) => existingIds.includes(a.id.toString()) == false
+      );
 
       // accessories.forEach((accessory) => {
       //   let isAvailable = true;
@@ -38,7 +46,7 @@ module.exports = {
   async post(req, res) {
     try {
       await req.storage.attachAccessory(req.params.id, req.body.accessory);
-      await req.accessory.attachCar(req.body.accessory, req.params.id);
+      await req.accessory.attachCar(req.body.accessory, req.params.id, req.storage.user.id);
       res.redirect("/");
     } catch (error) {
       console.log(error.message);

@@ -10,6 +10,7 @@ module.exports = {
       price: Number(data.price),
       imageUrl: data.imageUrl,
       description: data.description,
+      owner: req.session.user.id,
     };
 
     try {
