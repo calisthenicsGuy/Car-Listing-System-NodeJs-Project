@@ -1,6 +1,7 @@
 const express = require("express");
 const handlebars = require("express-handlebars");
 const expressSession = require("express-session");
+const { body } = require("express-validator");
 
 const initDb = require("./models/index");
 
@@ -11,13 +12,9 @@ const { notFound } = require("./controllers/notFound");
 const { deleteGet, deletePost } = require("./controllers/delete");
 const { createGet, createPost } = require("./controllers/create");
 const { editGet, editPost } = require("./controllers/edit");
-const {
-  registerGet,
-  registerPost,
-  loginGet,
-  loginPost,
-  logout,
-} = require("./controllers/auth");
+
+const authController = require("./controllers/auth");
+
 const accessory = require("./controllers/accessory");
 const attach = require("./controllers/attach");
 
@@ -57,35 +54,33 @@ async function start() {
   app.get("/", home);
   app.get("/about", about);
   app.get("/details/:id", details);
-  app.get("/logout", logout);
 
-  app.route("/create")
+  app
+    .route("/create")
     .get(isLoggedIn, createGet)
     .post(isLoggedIn, createPost);
 
-  app.route("/delete/:id")
+  app
+    .route("/delete/:id")
     .get(isLoggedIn, deleteGet)
     .post(isLoggedIn, deletePost);
 
-  app.route("/edit/:id")
+  app
+    .route("/edit/:id")
     .get(isLoggedIn, editGet)
     .post(isLoggedIn, editPost);
 
-  app.route("/accessory")
+  app
+    .route("/accessory")
     .get(isLoggedIn, accessory.get)
     .post(isLoggedIn, accessory.post);
 
-  app.route("/attach/:id")
+  app
+    .route("/attach/:id")
     .get(isLoggedIn, attach.get)
     .post(isLoggedIn, attach.post);
 
-  app.route("/register")
-    .get(registerGet)
-    .post(registerPost);
-
-  app.route("/login")
-    .get(loginGet)
-    .post(loginPost);
+  app.use(authController);
 
   app.get("*", notFound);
 
@@ -93,3 +88,29 @@ async function start() {
     console.log("Server started on port 3000.");
   });
 }
+
+// app
+//   .route("/register")
+//   .get(registerGet)
+//   .post(
+//     body("username").trim().toLowerCase(),
+//     body("password").trim(),
+//     body("repeatPassword").trim(),
+//     body("username")
+//       .isLength({ min: 3 })
+//       .withMessage("Username field must be at least 3 symbols")
+//       .bail()
+//       .isAlphanumeric()
+//       .withMessage("Username may contains only letters and numbers"),
+//     body("password")
+//       .notEmpty()
+//       .withMessage("Password field is required")
+//       .isLength({ min: 6 })
+//       .withMessage("Password field must be at least 6 symbols"),
+//     body("repeatPassword")
+//       .custom((value, { req }) => {
+//         return value == req.body.password;
+//       })
+//       .withMessage("Passwords doesn't match!"),
+//     registerPost
+//   );

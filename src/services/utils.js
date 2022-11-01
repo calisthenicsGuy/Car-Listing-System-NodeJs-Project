@@ -45,10 +45,35 @@ function isLoggedIn(req, res, next) {
   }
 }
 
+function mapError(error) {
+  if (Array.isArray(error)) {
+    return error;
+  } else if (error.name == "MongoServerError") {
+    if (error.code == 11000) {
+      return [
+        {
+          msg: "Username already exist.",
+        },
+      ];
+    } else {
+      return [{ msg: "Request error." }];
+    }
+  } else if (error.name == "ValidationError") {
+    const errors = Object.values(error.errors).map(el => ({msg: el.message}));
+    // const errors = Object.entries(error.errors).map((el) => ({msg: el[1]}) );
+    return errors;
+  } else if (typeof error.message == "string") {
+    return [{ msg: error.message }];
+  } else {
+    return [{ msg: "Request error." }];
+  }
+}
+
 module.exports = {
   carViewModel,
   accessoryViewModel,
   hashPassword,
   comparePassword,
   isLoggedIn,
+  mapError,
 };

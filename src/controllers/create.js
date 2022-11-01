@@ -1,3 +1,5 @@
+const { mapError } = require("../services/utils");
+
 module.exports = {
   createGet(req, res) {
     res.render("create", { title: "Create Listing" });
@@ -23,7 +25,7 @@ module.exports = {
       await req.storage.createCar(car);
       res.redirect("/");
     } catch (error) {
-      await res.render("/create", { title: "Create Listing" });
+      await res.render("create", { title: "Create Listing", errors: mapError(error), car: car });
     }
   },
 };

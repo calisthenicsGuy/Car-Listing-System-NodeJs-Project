@@ -5,15 +5,25 @@ const userSchema = new Schema({
   username: {
     type: String,
     required: true,
-    minLength: [3, "Username must be at least 3 symbols."],
-    unique: true,
+    minLength: [5, "Username must be at least 5 symbols long."],
   },
   hashedPassword: {
     type: String,
     required: true,
-    // minLength: [5, "Password must be at least 5 symbols."],
+    minLength: [8, "Password must be at least 8 symbols long."],
   },
 });
+
+userSchema.index(
+  { username: 1 },
+  {
+    unique: true,
+    collation: {
+      locale: "en",
+      strength: 2,
+    },
+  }
+);
 
 userSchema.methods.comparePassword = async function (password) {
   return await comparePassword(password, this.hashedPassword);
